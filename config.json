@@ -1,9 +1,0 @@
-{
-  "instances": {
-    "Default": {
-      "folder_name": "Mods",
-      "smapi_path": null
-    }
-  },
-  "smapi_path": "/media/IronWolf/SteamLibrary/steamapps/common/Stardew Valley/StardewModdingAPI"
-}
