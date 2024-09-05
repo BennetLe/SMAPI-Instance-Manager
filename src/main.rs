@@ -15,6 +15,9 @@ use app::{App, CurrentScreen, CurrentlyAdding};
 use ui::ui;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    // create app before terminal is unsuable
+    let mut app = App::new();
+
     // setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -23,7 +26,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let mut app = App::new();
     let res = run_app(&mut terminal, &mut app);
 
     disable_raw_mode()?;
