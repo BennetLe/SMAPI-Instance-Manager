@@ -116,10 +116,11 @@ impl Manager {
             return;
         }
         if with_folder {
-            // TODO: remove folder
             let path = self.get_path(self.instances.get(&name).unwrap().clone());
             let path = Path::new(path.as_str());
-            fs::remove_dir_all(path).expect("failed to remove dir");
+            if path.exists() {
+                fs::remove_dir_all(path).expect("failed to remove dir");
+            }
         }
         self.instances.remove(&name);
         self.save();

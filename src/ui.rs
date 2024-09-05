@@ -1,7 +1,7 @@
 use ratatui::{
     layout::{Constraint, Layout, Rect},
     prelude::Direction,
-    style::{Color, Modifier, Style},
+    style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Frame,
@@ -114,6 +114,50 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .split(chunks[2]);
     frame.render_widget(mode_footer, footer_chunks[0]);
     frame.render_widget(key_notest_footer, footer_chunks[1]);
+
+    if let Some(adding) = &app.adding {
+        let popup_block = Block::default()
+            .title("Add a new instance")
+            .borders(Borders::NONE)
+            .style(Style::default().bg(Color::DarkGray));
+
+        let area = centered_rect(60, 40, frame.area());
+        frame.render_widget(popup_block, area);
+
+        let popup_chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .margin(1)
+            .constraints([
+                Constraint::Percentage(100 / 3),
+                Constraint::Percentage(100 / 3),
+                Constraint::Percentage(100 / 3),
+            ])
+            .split(area);
+
+        let mut name_block = Block::default().title("Name").borders(Borders::ALL);
+        let mut folder_name_block = Block::default().title("Folder Name").borders(Borders::ALL);
+        let mut smapi_path_block = Block::default().title("SMAPI Path").borders(Borders::ALL);
+
+        let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
+
+        match adding {
+            CurrentlyAdding::Name => name_block = name_block.style(active_style),
+            CurrentlyAdding::FolderName => {
+                folder_name_block = folder_name_block.style(active_style)
+            }
+            CurrentlyAdding::SmapiPath => smapi_path_block = smapi_path_block.style(active_style),
+        };
+
+        let name_text = Paragraph::new(app.name_input.clone()).block(name_block);
+        frame.render_widget(name_text, popup_chunks[0]);
+
+        let folder_name_text =
+            Paragraph::new(app.folder_name_input.clone()).block(folder_name_block);
+        frame.render_widget(folder_name_text, popup_chunks[1]);
+
+        let smapi_path_text = Paragraph::new(app.smapi_path_input.clone()).block(smapi_path_block);
+        frame.render_widget(smapi_path_text, popup_chunks[2]);
+    }
 }
 
 fn centered_rect(percentage_x: u16, percentage_y: u16, r: Rect) -> Rect {

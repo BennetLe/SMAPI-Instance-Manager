@@ -101,6 +101,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                                 }
                                 CurrentlyAdding::SmapiPath => {
                                     app.save_instance();
+                                    app.adding = None;
                                     app.screen = CurrentScreen::Main;
                                 }
                             }
