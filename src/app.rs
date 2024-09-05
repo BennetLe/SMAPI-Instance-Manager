@@ -3,6 +3,7 @@ use std::{
     env,
     fs::{self, File},
     io,
+    path::Path,
     process::Command,
 };
 
@@ -74,6 +75,33 @@ impl Manager {
         }
     }
 
+    pub fn get_path(&self, instance: Instance) -> String {
+        let path = instance
+            .smapi_path
+            .unwrap_or(self.smapi_path.clone())
+            .replace("StardewModdingAPI", "");
+        let path: String = format!("{}{}", path.clone(), instance.folder_name.clone());
+        path
+    }
+
+    pub fn open(&self, instance: Instance) {
+        let path = self.get_path(instance);
+        let path = Path::new(path.as_str());
+        println!("{}", path.to_str().unwrap());
+
+        if !path.exists() {
+            fs::create_dir(path).expect("failed to create folder");
+        }
+
+        // TODO: check if folder exists and create if not
+
+        let mut shell = Command::new("xdg-open")
+            .arg(path)
+            .spawn()
+            .expect("failed to open folder");
+        shell.wait().expect("shell error");
+    }
+
     pub fn add_instance(&mut self, instance: Instance, name: String) {
         self.instances.insert(name, instance);
     }
@@ -81,6 +109,20 @@ impl Manager {
     pub fn save(&self) {
         let f = File::create("./config.json").unwrap();
         to_writer_pretty(f, &self).expect("Failed to write to file");
+    }
+
+    pub fn remove_instance(&mut self, name: String, with_folder: bool) {
+        if name == "Default" {
+            return;
+        }
+        if with_folder {
+            // TODO: remove folder
+            let path = self.get_path(self.instances.get(&name).unwrap().clone());
+            let path = Path::new(path.as_str());
+            fs::remove_dir_all(path).expect("failed to remove dir");
+        }
+        self.instances.remove(&name);
+        self.save();
     }
 }
 
@@ -134,7 +176,16 @@ impl App {
     }
 
     pub fn save_instance(&mut self) {
+        if self.manager.instances.contains_key(&self.name_input) {
+            return;
+        }
+
         if self.smapi_path_input.is_empty() {
+            self.manager.add_instance(
+                Instance::new(self.folder_name_input.clone(), None),
+                self.name_input.clone(),
+            );
+        } else {
             self.manager.add_instance(
                 Instance::new(
                     self.folder_name_input.clone(),
@@ -142,12 +193,9 @@ impl App {
                 ),
                 self.name_input.clone(),
             );
-        } else {
-            self.manager.add_instance(
-                Instance::new(self.folder_name_input.clone(), None),
-                self.name_input.clone(),
-            );
         };
+
+        self.manager.save();
 
         self.name_input = String::new();
         self.folder_name_input = String::new();

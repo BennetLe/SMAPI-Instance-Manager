@@ -11,7 +11,7 @@ use std::io;
 mod app;
 mod ui;
 
-use app::{App, CurrentScreen, CurrentlyAdding, Instance};
+use app::{App, CurrentScreen, CurrentlyAdding};
 use ui::ui;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -24,8 +24,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     let mut app = App::new();
-    app.manager
-        .add_instance(Instance::new("Test".into(), None), "Test".into());
     let res = run_app(&mut terminal, &mut app);
 
     disable_raw_mode()?;
@@ -69,12 +67,22 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     ),
                     KeyCode::Char('a') => {
                         app.screen = CurrentScreen::Add;
+                        app.adding = Some(CurrentlyAdding::Name);
                     }
                     KeyCode::Char('q') => {
                         app.screen = CurrentScreen::Exit;
                     }
                     KeyCode::Char('r') => {
                         app.screen = CurrentScreen::Remove;
+                    }
+                    KeyCode::Char('o') => {
+                        app.manager.open(
+                            app.manager
+                                .instances
+                                .get(&app.current_instance)
+                                .unwrap()
+                                .clone(),
+                        );
                     }
                     _ => {}
                 },
@@ -83,6 +91,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         if let Some(adding) = &app.adding {
                             match adding {
                                 CurrentlyAdding::Name => {
+                                    if app.manager.instances.contains_key(&app.name_input) {
+                                        continue;
+                                    }
                                     app.adding = Some(CurrentlyAdding::FolderName);
                                 }
                                 CurrentlyAdding::FolderName => {
@@ -144,9 +155,17 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                 CurrentScreen::Remove => match key.code {
                     KeyCode::Char('y') => {
                         // TODO: Delete without folder
+                        let to_delete: String = app.current_instance.clone();
+                        app.select_next();
+                        app.manager.remove_instance(to_delete, false);
+                        app.screen = CurrentScreen::Main;
                     }
-                    KeyCode::Char('Y') => {
+                    KeyCode::Char('a') => {
                         // TODO: Delete with folder
+                        let to_delete: String = app.current_instance.clone();
+                        app.select_next();
+                        app.manager.remove_instance(to_delete, true);
+                        app.screen = CurrentScreen::Main;
                     }
                     KeyCode::Char('n') => {
                         app.screen = CurrentScreen::Main;

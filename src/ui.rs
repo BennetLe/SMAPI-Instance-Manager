@@ -99,7 +99,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
                 Style::default().fg(Color::Red)
             ),
             CurrentScreen::Remove => Span::styled(
-                "(n) to cancle/(y) to remove instance/(Y) to delete folder", 
+                "(n) to cancle/(y) to remove instance/(a) to delete with folder", 
                 Style::default().fg(Color::Red)
             ),
         }
