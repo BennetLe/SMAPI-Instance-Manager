@@ -3,7 +3,7 @@ use ratatui::{
     prelude::Direction,
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
     Frame,
 };
 
@@ -157,6 +157,23 @@ pub fn ui(frame: &mut Frame, app: &App) {
 
         let smapi_path_text = Paragraph::new(app.smapi_path_input.clone()).block(smapi_path_block);
         frame.render_widget(smapi_path_text, popup_chunks[2]);
+    }
+
+    if let CurrentScreen::Exit = app.screen {
+        frame.render_widget(Clear, frame.area());
+        let popup_block = Block::default()
+            .title("Y/N")
+            .borders(Borders::NONE)
+            .style(Style::default().bg(Color::DarkGray));
+
+        let exit_text = Text::styled("Would you like to exit?", Style::default().fg(Color::Red));
+
+        let exit_paragraph = Paragraph::new(exit_text)
+            .block(popup_block)
+            .wrap(Wrap { trim: false });
+
+        let area = centered_rect(60, 25, frame.area());
+        frame.render_widget(exit_paragraph, area);
     }
 }
 
