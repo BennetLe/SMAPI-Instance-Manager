@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     env,
     fs::{self, File},
     io,
@@ -26,7 +26,7 @@ impl Instance {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Manager {
-    pub instances: HashMap<String, Instance>,
+    pub instances: BTreeMap<String, Instance>,
     pub smapi_path: String,
 }
 
@@ -34,7 +34,7 @@ impl Manager {
     pub fn new(smapi_path: String) -> Manager {
         let mut app = Manager {
             smapi_path,
-            instances: HashMap::new(),
+            instances: BTreeMap::new(),
         };
         let instance = Instance::new("Mods".into(), None);
         app.instances.insert("Default".into(), instance);
