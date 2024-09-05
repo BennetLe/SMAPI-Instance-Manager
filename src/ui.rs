@@ -139,6 +139,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
         let mut smapi_path_block = Block::default().title("SMAPI Path").borders(Borders::ALL);
 
         let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
+        let name_used_style = Style::default().bg(Color::LightRed).fg(Color::Black);
 
         match adding {
             CurrentlyAdding::Name => name_block = name_block.style(active_style),
@@ -147,6 +148,10 @@ pub fn ui(frame: &mut Frame, app: &App) {
             }
             CurrentlyAdding::SmapiPath => smapi_path_block = smapi_path_block.style(active_style),
         };
+
+        if app.manager.instances.contains_key(&app.name_input) {
+            name_block = name_block.style(name_used_style);
+        }
 
         let name_text = Paragraph::new(app.name_input.clone()).block(name_block);
         frame.render_widget(name_text, popup_chunks[0]);

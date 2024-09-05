@@ -127,6 +127,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         app.adding = None;
                     }
                     KeyCode::Tab => {
+                        if app.manager.instances.contains_key(&app.name_input) {
+                            continue;
+                        }
                         app.toggle_adding();
                     }
                     KeyCode::Char(value) => {
