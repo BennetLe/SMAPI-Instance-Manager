@@ -17,6 +17,7 @@ use ui::ui;
 fn main() -> Result<(), Box<dyn Error>> {
     // create app before terminal is unsuable
     let mut app = App::new();
+    app.manager.save();
 
     // setup terminal
     enable_raw_mode()?;
