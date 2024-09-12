@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+use serde_json::to_writer_pretty;
+use std::process::Child;
 use std::{
     collections::BTreeMap,
     env,
@@ -6,9 +9,6 @@ use std::{
     path::Path,
     process::Command,
 };
-
-use serde::{Deserialize, Serialize};
-use serde_json::to_writer_pretty;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Instance {
@@ -55,19 +55,39 @@ impl Manager {
     }
 
     pub fn run(&self, instance: Instance) {
-        let path = instance.smapi_path.unwrap_or(self.smapi_path.clone());
-        let terminal = env::var("TERMINAL").unwrap_or("konsole".into());
+        let terminal = if cfg!(target_os = "windows") {
+            "konsole"
+        } else {
+            "cmd"
+        };
 
-        let mut shell = Command::new(terminal)
-            .args([
-                "-e",
-                "steam-run",
-                path.as_str(),
-                "--mods-path",
-                instance.folder_name.as_str(),
-            ])
-            .spawn()
-            .expect("Failed to spawn shell for smapi");
+        let path = instance.smapi_path.unwrap_or(self.smapi_path.clone());
+        let terminal = env::var("TERMINAL").unwrap_or(terminal.to_string());
+
+        let mut shell: Child;
+
+        if cfg!(target_os = "windows") {
+            shell = Command::new(terminal)
+                .args([
+                    "/k",
+                    path.as_str(),
+                    "--mods-path",
+                    instance.folder_name.as_str(),
+                ])
+                .spawn()
+                .expect("failed to spawn cmd for smapi");
+        } else {
+            shell = Command::new(terminal)
+                .args([
+                    "-e",
+                    "steam-run",
+                    path.as_str(),
+                    "--mods-path",
+                    instance.folder_name.as_str(),
+                ])
+                .spawn()
+                .expect("Failed to spawn shell for smapi");
+        }
         let result = shell.wait();
         match result {
             Ok(_) => (),
@@ -79,7 +99,8 @@ impl Manager {
         let path = instance
             .smapi_path
             .unwrap_or(self.smapi_path.clone())
-            .replace("StardewModdingAPI", "");
+            .replace("StardewModdingAPI", "")
+            .replace("StardewModdingAPI.exe", "");
         let path: String = format!("{}{}", path.clone(), instance.folder_name.clone());
         path
     }
@@ -152,19 +173,24 @@ pub struct App {
 
 impl App {
     pub fn new() -> App {
-        let manager = match Manager::load_config() {
-            Ok(m) => m,
-            Err(_) => {
-                println!("Creating config file");
-                println!("Enter the path to your smapi installation: ");
-                let mut smapi_path: String = String::new();
-                io::stdin()
-                    .read_line(&mut smapi_path)
-                    .expect("Failed to read stdin");
-                let path = format!("{}/StardewModdingAPI", smapi_path.replace(['\n', '\r'], ""));
-                Manager::new(path)
+        let manager = Manager::load_config().unwrap_or_else(|_| {
+            println!("Creating config file");
+            println!("Enter the path to your smapi installation: ");
+            let mut smapi_path: String = String::new();
+            io::stdin()
+                .read_line(&mut smapi_path)
+                .expect("Failed to read stdin");
+            let mut path: String = String::new();
+            if cfg!(target_os = "windows") {
+                path = format!(
+                    "{}/StardewModdingAPI.exe",
+                    smapi_path.replace(['\n', '\r'], "")
+                );
+            } else {
+                path = format!("{}/StardewModdingAPI", smapi_path.replace(['\n', '\r'], ""));
             }
-        };
+            Manager::new(path)
+        });
         App {
             manager,
             screen: CurrentScreen::Main,
