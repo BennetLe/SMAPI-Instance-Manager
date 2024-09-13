@@ -91,7 +91,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
                 Style::default().fg(Color::Red)
             ),
             CurrentScreen::Main => Span::styled(
-                "(a) to add new instance/(q) to quit/(r) to remove selected instance/(Enter) to start selected instance/ (up) and (down) to selecte instance", 
+                "(a) to add new instance/(q) to quit/(r) to remove selected instance/(o) to open folder/(Enter) to start selected instance/ (up) and (down) to selecte instance", 
                 Style::default().fg(Color::Red)
             ),
             CurrentScreen::Exit => Span::styled(

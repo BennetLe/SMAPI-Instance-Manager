@@ -87,7 +87,6 @@ impl Manager {
     pub fn open(&self, instance: Instance) {
         let path = self.get_path(instance);
         let path = Path::new(path.as_str());
-        println!("{}", path.to_str().unwrap());
 
         if !path.exists() {
             fs::create_dir(path).expect("failed to create folder");
@@ -95,11 +94,10 @@ impl Manager {
 
         // TODO: check if folder exists and create if not
 
-        let mut shell = Command::new("xdg-open")
+        let shell = Command::new("xdg-open")
             .arg(path)
-            .spawn()
+            .output()
             .expect("failed to open folder");
-        shell.wait().expect("shell error");
     }
 
     pub fn add_instance(&mut self, instance: Instance, name: String) {
