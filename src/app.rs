@@ -4,7 +4,7 @@ use std::{
     fs::{self, File},
     io,
     path::Path,
-    process::Command,
+    process::{Command, Stdio},
 };
 
 use serde::{Deserialize, Serialize};
@@ -58,14 +58,18 @@ impl Manager {
         let path = instance.smapi_path.unwrap_or(self.smapi_path.clone());
         let terminal = env::var("TERMINAL").unwrap_or("konsole".into());
 
+        let args = vec![
+            "-e",
+            "steam-run",
+            path.as_str(),
+            "--mods-path",
+            instance.folder_name.as_str(),
+        ];
+
         let mut shell = Command::new(terminal)
-            .args([
-                "-e",
-                "steam-run",
-                path.as_str(),
-                "--mods-path",
-                instance.folder_name.as_str(),
-            ])
+            .args(args)
+            .env("SDL_VIDEODRIVER", "") // fix smapi not starting if SDL_VIDEODRIVER = wayland
+            .stderr(Stdio::null())
             .spawn()
             .expect("Failed to spawn shell for smapi");
         let result = shell.wait();
