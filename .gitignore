@@ -23,4 +23,7 @@ target/
 config.json
 
 # nix
-/result
+result
+
+# direnv
+.direnv
