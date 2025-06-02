@@ -31,6 +31,8 @@ pub struct Manager {
     pub smapi_path: String,
 }
 
+static CONFIG_PATH: &str = "./config.json";
+
 impl Manager {
     pub fn new(smapi_path: String) -> Manager {
         let mut app = Manager {
@@ -43,7 +45,7 @@ impl Manager {
     }
 
     pub fn load_config() -> Result<Manager, String> {
-        let contents = match fs::read_to_string("./config.json") {
+        let contents = match fs::read_to_string(CONFIG_PATH) {
             Ok(c) => c,
             Err(e) => return Err(e.to_string()),
         };
@@ -109,7 +111,7 @@ impl Manager {
     }
 
     pub fn save(&self) {
-        let f = File::create("./config.json").unwrap();
+        let f = File::create(CONFIG_PATH).unwrap();
         to_writer_pretty(f, &self).expect("Failed to write to file");
     }
 
